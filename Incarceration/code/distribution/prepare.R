@@ -9,10 +9,23 @@ library(dplyr)
 library(readxl)
 
 #reading the original data downloaded from prison policy
-data_2020_tract <- read_excel("~/git/sdc.public_safety_dev/Incarceration/data/original/Incarceration_tract_2020.xlsx")
+data_2020_tract <- read_csv("~/git/sdc.public_safety_dev/Incarceration/data/original/incarceration_tract_data_2020.csv")
+
+
 
 #converting to dataframe
 data_2020_tract <- data.frame(data_2020_tract)
+
+#renaming the column names for our convenience
+
+colnames(data_2020_tract) <- c(
+  "FIPS",
+  "Census_tracts",
+  "People_prison",
+  "Census_population",
+  "Total_population",
+  "Incarceration_rate_per_100000"
+)
 
 #Selecting required columns and changing it to our format
 data_2020_df_tract <- data_2020_tract %>%
@@ -36,11 +49,21 @@ library(tigris)
 library(tidycensus)
 library(dplyr)
 
+data_2020_county <- read_csv("~/git/sdc.public_safety_dev/Incarceration/data/original/incarceration_county_data_2020.csv")
 
-data_2020_county <- read_excel("~/incarceration/incarceration_county_2020.xlsx")
 
 data_2020_county <- data.frame(data_2020_county)
 
+#renaming the column names for our convenience
+
+colnames(data_2020_county) <- c(
+  "FIPS",
+  "Census_tracts",
+  "People_prison",
+  "Census_population",
+  "Total_population",
+  "Incarceration_rate_per_100000"
+)
 
 data_2020_df_county <- data_2020_county %>%
   select(FIPS, Incarceration_rate_per_100000) %>%
