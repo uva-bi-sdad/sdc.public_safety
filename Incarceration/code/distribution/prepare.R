@@ -26,7 +26,7 @@ data_2020_df_tract <- data_2020_tract %>%
   select(geoid, measure, year, value)
 
 #exporting the file
-write.csv(data_2020_df_tract, "~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_tr_2020_incarceration_rate.csv", row.names = FALSE)
+#write.csv(data_2020_df_tract, "~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_tr_2020_incarceration_rate.csv", row.names = FALSE)
 
 
 #code for county level data
@@ -52,7 +52,11 @@ data_2020_df_county <- data_2020_county %>%
   ) %>%
   select(geoid, measure, year, value)
 
-write.csv(data_2020_df_county, "~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_ct_2020_incarceration_rate.csv", row.names = FALSE)
+#write.csv(data_2020_df_county, "~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_ct_2020_incarceration_rate.csv", row.names = FALSE)
 
 
+#combining tract and county data
+combined_df <- rbind(data_2020_df_tract, data_2020_df_county)
 
+
+readr::write_csv(combined_df,xzfile("~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_cttr_2020_incarceration_rate.csv.xz", compression = 9))
