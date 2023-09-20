@@ -1,5 +1,5 @@
 {
-  "incarceration_rate": {
+  "incarceration_rate_per_100000": {
     "aggregation_method": "count",
     "category": "Public Safety",
     "citations": "",
