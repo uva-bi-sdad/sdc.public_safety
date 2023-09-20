@@ -78,8 +78,39 @@ data_2020_df_county <- data_2020_county %>%
 #write.csv(data_2020_df_county, "~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_ct_2020_incarceration_rate.csv", row.names = FALSE)
 
 
+
+
+#####health district level
+
+
+health_district_data <- read_csv("~/git/sdc.geographies_dev/VA/State Geographies/Health Districts/2020/data/distribution/va_ct_to_hd_crosswalk.csv")
+
+#taking the county level data and aggregating it
+data_2020_df_county
+
+#merging  health district data and county level data 
+health_district_inc <- merge(x = health_district_data, y = data_2020_df_county, by.x = "ct_geoid", by.y = "geoid")
+
+# doing the aggregation, adding measure column and renaming hd_geoid to geoid so easy for bind 
+health_district_inc_sum <- health_district_inc %>%
+  group_by(hd_geoid, year) %>%
+  summarise(
+    value = sum(value)
+  ) %>%
+  mutate(measure = "incarceration_rate_per_100000") %>%
+  select(geoid = hd_geoid, measure, year, value)
+
+#making sure all are df type
+data_2020_df_tract <- data.frame(data_2020_df_tract)
+data_2020_df_county <- data.frame(data_2020_df_county)
+health_district_inc_sum <- data.frame(health_district_inc_sum)
+
 #combining tract and county data
-combined_df <- rbind(data_2020_df_tract, data_2020_df_county)
+combined_df <- rbind(data_2020_df_tract, data_2020_df_county,health_district_inc_sum)
 
 
-readr::write_csv(combined_df,xzfile("~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_cttr_2020_incarceration_rate.csv.xz", compression = 9))
+
+
+
+
+readr::write_csv(combined_df,xzfile("~/git/sdc.public_safety_dev/Incarceration/data/distribution/va_hdcttr_2020_incarceration_rate.csv.xz", compression = 9))
