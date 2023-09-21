@@ -82,23 +82,73 @@ data_2020_df_county <- data_2020_county %>%
 
 #####health district level
 
+#getting the county level   data to perform hd aggregation
 
+
+county_df <- read_csv("~/git/sdc.public_safety_dev/Incarceration/data/original/incarceration_county_data_2020.csv")
+
+colnames(county_df) <- c("fips", "name", "number_of_people", "census_pop", "total_pop", "value")
+
+
+#########
+
+# reading health district data
 health_district_data <- read_csv("~/git/sdc.geographies_dev/VA/State Geographies/Health Districts/2020/data/distribution/va_ct_to_hd_crosswalk.csv")
 
-#taking the county level data and aggregating it
-data_2020_df_county
+#county population from acs
 
-#merging  health district data and county level data 
-health_district_inc <- merge(x = health_district_data, y = data_2020_df_county, by.x = "ct_geoid", by.y = "geoid")
+va_acs <- get_acs(geography = "county", 
+                  variables = "B01003_001",
+                  year = 2020,
+                  survey = "acs5",
+                  state = "VA")
+#merging them
+merged_data <- merge(va_acs, health_district_data, by.x = "GEOID", by.y = "ct_geoid")
 
-# doing the aggregation, adding measure column and renaming hd_geoid to geoid so easy for bind 
+#aggregating county population to hd
+aggregated_data <- merged_data %>%
+  group_by(hd_geoid) %>%
+  summarize(estimate = sum(estimate))
+
+#####
+#aggregating number of people in jail county level to health district
+
+#merging health district data and county level prison data
+health_district_inc <- merge(x = health_district_data, y = county_df, by.x = "ct_geoid", by.y = "fips")
+
+#removing ',' and converting to  numeric since it is character
+health_district_inc$number_of_people <- as.numeric(gsub(",", "", health_district_inc$number_of_people))
+
 health_district_inc_sum <- health_district_inc %>%
-  group_by(hd_geoid, year) %>%
+  group_by(hd_geoid) %>%
   summarise(
-    value = sum(value)
+    value = sum(number_of_people, na.rm = TRUE)
+  )
+
+
+#####
+
+#health_district_inc_sum
+
+#aggregated_data
+
+
+combined_data <-  left_join(health_district_inc_sum ,aggregated_data , by = "hd_geoid")
+
+
+final_hd <- combined_data %>%
+  mutate(
+    value = (value / estimate) * 100000,
+    year = 2020,
+    measure = "incarceration_rate_per_100000",
+    geoid = hd_geoid
   ) %>%
-  mutate(measure = "incarceration_rate_per_100000") %>%
-  select(geoid = hd_geoid, measure, year, value)
+  select(geoid, measure, year, value)
+
+final_hd$value <- round(final_hd$value, 2)
+
+
+health_district_inc_sum <- final_hd
 
 #making sure all are df type
 data_2020_df_tract <- data.frame(data_2020_df_tract)
